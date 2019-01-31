@@ -32,6 +32,7 @@ class App extends Component {
     this.toggleProfileModal = this.toggleProfileModal.bind(this)
     this.togglePostModal = this.togglePostModal.bind(this)
     this.addSkillSession = this.addSkillSession.bind(this)
+    this.addCommentToPost = this.addCommentToPost.bind(this)
     this.updateProfile = this.updateProfile.bind(this)
   }
 
@@ -54,6 +55,25 @@ class App extends Component {
 
     // Toggle the modal to go back to main view
     this.togglePostModal()
+  }
+  
+  addCommentToPost = (post, e) => {
+    e.preventDefault();
+    let comment_text = e.target.commentAddText.value;
+    if(comment_text !== ""){
+
+      fire.firestore().collection('comments').doc(post.id).update({
+        list: firebase.firestore.FieldValue.arrayUnion(
+          {
+            user: fire.auth().currentUser.email,
+            text: comment_text,
+            created_at: Date.now()
+          }
+        )
+      })
+
+
+    }
   }
 
   updateProfile = (e) => {
@@ -158,7 +178,7 @@ class App extends Component {
           onSetOpen={this.toggleSidebar}
           pullRight={true}
           touchHandleWidth={20}
-          sidebar={<SidebarContent comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
+          sidebar={<SidebarContent addCommentHelper={this.addCommentToPost.bind(this,this.state.sidebarContent)} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
           sidebarClassName="Sidebar"
         />
         <Navbar className="App-header">

@@ -28,5 +28,9 @@
 .postCommentsExpandButton{
     grid-column: 2;
 }
-.postCommentsContent{
+.addCommentContainer{
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto 20%;
+    align-items: center;
 }

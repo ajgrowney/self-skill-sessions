@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { Button, Card, CardHeader, CardText, CardTitle, CardSubtitle, CardBody, Collapse } from 'reactstrap'
-import { MdClose, MdExpandMore, MdExpandLess } from 'react-icons/md'
+import { Button, Card, CardHeader, CardText, CardTitle, CardSubtitle, CardBody, Collapse, Form, Input } from 'reactstrap'
+import { MdClose, MdExpandMore, MdExpandLess, MdAddCircleOutline } from 'react-icons/md'
 import './SidebarContent.css'
 
 // Param: comment { Object } - holds attributes text, user, created at
@@ -32,6 +32,7 @@ class SidebarContent extends Component {
     }
     this.toggleCommentsOpen = this.toggleCommentsOpen.bind(this)
   }
+
   toggleCommentsOpen = () => {
     if(!this.state.commentsOpen){
       this.setState({
@@ -71,6 +72,10 @@ class SidebarContent extends Component {
               <Collapse isOpen={this.state.commentsOpen} className="postCommentsContent">
                 {this.props.comments.map( com => <SidebarComment comment={com} className="postCommentElement" />)} 
               </Collapse>
+              <Form onSubmit={this.props.addCommentHelper} className="addCommentContainer">
+                <Input name="commentAddText" placeholder="Add a comment..." type="string" />
+                <Button><MdAddCircleOutline /></Button>
+              </Form>
             </div>
           </Card>
         </div>
