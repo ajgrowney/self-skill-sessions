@@ -1,8 +1,27 @@
 import React, { Component } from 'react'
-import { Button, Card, CardHeader, CardText, CardBody } from 'reactstrap'
+import { Button, Card, CardHeader, CardText, CardTitle, CardSubtitle, CardBody } from 'reactstrap'
 import { MdClose } from 'react-icons/md'
 import './SidebarContent.css'
 
+// Param: comment { Object } - holds attributes text, user, created at
+class SidebarComment extends Component{
+  constructor(props) {
+    super(props);
+  }
+  
+  render() {
+    return(
+    <CardBody>
+      <CardTitle>{this.props.comment.text}</CardTitle>
+      <CardSubtitle>{this.props.comment.user}</CardSubtitle>
+    </CardBody>
+    );
+  }
+}
+
+// Param: content { Object } - Holds attributes title, user, description, likes
+// Param: comments { Array <Object> - Holds objects with attributes text, user, created_at
+// Param: closeSidebar { function } - Closes the sidebar upon click event
 class SidebarContent extends Component {
   constructor(props) {
     super(props);
@@ -26,7 +45,10 @@ class SidebarContent extends Component {
               <CardText>{this.props.content.description}</CardText>
               <CardText>Likes: {likesText}</CardText>
             </CardBody>
-          </Card>
+	    <div className="postCommentsContainer">
+	      {this.props.comments.map( com => <SidebarComment comment={com} />)} 
+	    </div>
+	  </Card>
         </div>
       )
     }else{
