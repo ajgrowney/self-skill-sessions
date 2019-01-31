@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { Button, Card, CardHeader, CardText, CardTitle, CardSubtitle, CardBody } from 'reactstrap'
-import { MdClose } from 'react-icons/md'
+import { Button, Card, CardHeader, CardText, CardTitle, CardSubtitle, CardBody, Collapse } from 'reactstrap'
+import { MdClose, MdExpandMore, MdExpandLess } from 'react-icons/md'
 import './SidebarContent.css'
 
 // Param: comment { Object } - holds attributes text, user, created at
@@ -26,6 +26,24 @@ class SidebarContent extends Component {
   constructor(props) {
     super(props);
     this.content = this.props.content;
+    this.state = {
+      commentsOpen: false,
+      commentsButton: <MdExpandMore onClick={this.toggleCommentsOpen}/>
+    }
+    this.toggleCommentsOpen = this.toggleCommentsOpen.bind(this)
+  }
+  toggleCommentsOpen = () => {
+    if(!this.state.commentsOpen){
+      this.setState({
+        commentsOpen: true,
+        commentsButton: <MdExpandLess onClick={this.toggleCommentsOpen} />
+      })
+    }else{
+      this.setState({
+        commentsOpen: false,
+        commentsButton: <MdExpandMore onClick={this.toggleCommentsOpen} />
+      })
+    }
   }
 
   render() {
@@ -45,10 +63,16 @@ class SidebarContent extends Component {
               <CardText>{this.props.content.description}</CardText>
               <CardText>Likes: {likesText}</CardText>
             </CardBody>
-	    <div className="postCommentsContainer">
-	      {this.props.comments.map( com => <SidebarComment comment={com} />)} 
-	    </div>
-	  </Card>
+            <div className="postCommentsContainer">
+              <div className="postCommentsHeader">
+                <div className="postCommentsTitle">Comments ({this.props.comments.length})</div>
+                <div className="postCommentsExpandButton">{this.state.commentsButton}</div>
+              </div>
+              <Collapse isOpen={this.state.commentsOpen} className="postCommentsContent">
+                {this.props.comments.map( com => <SidebarComment comment={com} className="postCommentElement" />)} 
+              </Collapse>
+            </div>
+          </Card>
         </div>
       )
     }else{

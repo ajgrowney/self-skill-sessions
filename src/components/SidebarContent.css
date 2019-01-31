@@ -11,3 +11,22 @@
     grid-column: 2;
     margin: auto;
 }
+.postCommentsContainer{
+    width: 100%;
+}
+.postCommentsHeader{
+    display: grid;
+    width: 100%;
+    grid-template-columns: auto 25%;
+    align-items: center;
+}
+.postCommentsTitle{
+    padding-left: 3%;
+    grid-column: 1;
+    text-align: left;
+}
+.postCommentsExpandButton{
+    grid-column: 2;
+}
+.postCommentsContent{
+}
