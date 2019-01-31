@@ -1,0 +1,16 @@
+.listItem{
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.postContentContainer{
+    display: grid;
+    grid-template-columns: auto 25%
+}
+.postContentTitleUser{
+    grid-column: 1;
+}
+.postContentLikes{
+    grid-column: 2;
+}

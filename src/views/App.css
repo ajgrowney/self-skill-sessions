@@ -1,0 +1,62 @@
+.App {
+  text-align: center;
+  width: 100%;
+  background-color: #E5E5E5;
+}
+
+
+.App-header {
+  background-color: #282c34;
+  min-height: 15vh;
+  display: flex;
+  flex-direction: row;
+  vertical-align: middle;
+  width: 100%;
+  font-size: calc(10px + 2vmin);
+  color: #61dafb;
+}
+.App-nav{
+  width: 15%;
+  max-width: 15vw;
+}
+.App-title{
+  width: 70%;
+}
+
+.sign-in-form{
+  width: 80%;
+}
+.sign-in-body{
+  margin-top: 2em;
+}
+.main-card{
+  height: 50%;
+  width: 80%;
+  margin: auto;
+  margin-top: 10%;
+}
+.addPostButton{
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+  margin: 5%;
+  border-radius: 50%;
+  min-height: 10vh;
+  min-width: 10vh;
+}
+.navbarButtons{
+  color: white;
+}
+
+@media (max-width: 800px){
+  .Sidebar{
+    width: 80% !important;
+    background-color: white;
+  }
+}
+
+.Sidebar{
+  width: 33%;
+  background-color: white;
+}
+
