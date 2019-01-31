@@ -34,3 +34,12 @@
     grid-template-columns: auto 20%;
     align-items: center;
 }
+
+.userDeleteComment{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.commentDeleteButton{
+    border: 1px solid red;
+}

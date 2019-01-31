@@ -10,12 +10,28 @@ class SidebarComment extends Component{
   }
   
   render() {
-    return(
-    <CardBody>
-      <CardTitle>{this.props.comment.text}</CardTitle>
-      <CardSubtitle>{this.props.comment.user}</CardSubtitle>
-    </CardBody>
-    );
+    if(this.props.deleteComment === null){
+      return(
+      <CardBody>
+        <div>
+          <CardTitle>{this.props.comment.text}</CardTitle>
+          <CardSubtitle>{this.props.comment.user}</CardSubtitle>
+        </div>
+      </CardBody>
+      );
+    }else{
+      return(
+        <CardBody className="userDeleteComment">
+          <div className="commentBody">
+            <CardTitle>{this.props.comment.text}</CardTitle>
+            <CardSubtitle>{this.props.comment.user}</CardSubtitle>
+          </div>
+          <Button onClick={this.props.deleteComment.bind(this,this.props.comment)} className="commentDeleteButton">
+            <MdClose  />
+          </Button>
+        </CardBody>
+      )
+    }
   }
 }
 
@@ -27,8 +43,8 @@ class SidebarContent extends Component {
     super(props);
     this.content = this.props.content;
     this.state = {
-      commentsOpen: false,
-      commentsButton: <MdExpandMore onClick={this.toggleCommentsOpen}/>
+      commentsOpen: true,
+      commentsButton: <MdExpandLess onClick={this.toggleCommentsOpen}/>
     }
     this.toggleCommentsOpen = this.toggleCommentsOpen.bind(this)
   }
@@ -70,7 +86,12 @@ class SidebarContent extends Component {
                 <div className="postCommentsExpandButton">{this.state.commentsButton}</div>
               </div>
               <Collapse isOpen={this.state.commentsOpen} className="postCommentsContent">
-                {this.props.comments.map( com => <SidebarComment comment={com} className="postCommentElement" />)} 
+                {this.props.comments.map( com => 
+                  {
+                    let deleteCommentFcn = (com.user === this.props.curUser.email) ? this.props.deleteCommentHelper : null;
+                    return(<SidebarComment comment={com} deleteComment={deleteCommentFcn} className="postCommentElement" />);
+                  }
+                )} 
               </Collapse>
               <Form onSubmit={this.props.addCommentHelper} className="addCommentContainer">
                 <Input name="commentAddText" placeholder="Add a comment..." type="string" />

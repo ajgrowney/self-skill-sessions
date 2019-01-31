@@ -33,6 +33,7 @@ class App extends Component {
     this.togglePostModal = this.togglePostModal.bind(this)
     this.addSkillSession = this.addSkillSession.bind(this)
     this.addCommentToPost = this.addCommentToPost.bind(this)
+    this.deleteComment = this.deleteComment.bind(this)
     this.updateProfile = this.updateProfile.bind(this)
   }
 
@@ -45,7 +46,7 @@ class App extends Component {
       user: fire.auth().currentUser.email,
       title: event_title,
       description: event_description,
-      timestamp_created: firebase.firestore.FieldValue.serverTimestamp(),
+      timestamp_created: Date.now(),
       likes: []
     }).then((doc) => {
       // Add a blank set of comments for it
@@ -60,6 +61,7 @@ class App extends Component {
   addCommentToPost = (post, e) => {
     e.preventDefault();
     let comment_text = e.target.commentAddText.value;
+    e.target.reset()
     if(comment_text !== ""){
 
       fire.firestore().collection('comments').doc(post.id).update({
@@ -71,9 +73,12 @@ class App extends Component {
           }
         )
       })
-
-
     }
+  }
+  deleteComment = (postid, comment, e) => {
+    fire.firestore().collection('comments').doc(postid).update({
+      list: firebase.firestore.FieldValue.arrayRemove(comment)
+    })
   }
 
   updateProfile = (e) => {
@@ -141,26 +146,38 @@ class App extends Component {
     let commentsDBRef = this.state.db.collection('comments');
     commentsDBRef.onSnapshot( (snap) => {
       snap.docChanges().forEach( (change) => {
-	if(change.type === 'added' || change.type === 'modified') {
-	  let { list } = change.doc.data()
-	  let { id } = change.doc
-
-	  let comment = { id, list }
-	  let curStateComments = Object.assign({}, this.state.comments);
-	  curStateComments[id] = comment;
-	  this.setState({comments: curStateComments });
-	} else if (change.type === 'removed') {
-	  let prevStateComments = Object.assign({}, this.state.comments);
-	  delete prevStateComments[change.doc.id]
-	  this.setState({ comments: prevStateComments })
-	}
+        if(change.type === 'added') {
+          let { list } = change.doc.data()
+          let { id } = change.doc
+          let curStateComments = Object.assign({}, this.state.comments);
+          curStateComments[id] = list;
+          this.setState({comments: curStateComments });
+        } else if(change.type === 'modified') {
+          let { list } = change.doc.data()
+          let { id } = change.doc
+          
+          let prevStateComments = Object.assign({}, this.state.comments);
+          prevStateComments[id] = list
+          this.setState({comments: prevStateComments, sidebarComments: prevStateComments[id]})
+          
+        }else if (change.type === 'removed') {
+          // Not handling removes
+        }
       });
     });
-  }
+    }
 
-  // Determien that it should only re-render if the posts have been updated
+ // Determine that it should only re-render if the posts have been updated
   shouldComponentUpdate = (nextProps, nextState) => {
-    return (this.state.comments !== nextState.comments || this.state.posts !== nextState.posts || this.state.postModalOpen !== nextState.postModalOpen || this.state.profileModalOpen !== nextState.profileModalOpen || this.state.user !== nextState.user || this.state.sidebarOpen !== nextState.sidebarOpen || this.state.sidebarComments !== nextState.sidebarComments ||  this.state.sidebarContent !== nextState.sidebarContent)
+    return (
+      this.state.comments !== nextState.comments || 
+      this.state.posts !== nextState.posts || 
+      this.state.postModalOpen !== nextState.postModalOpen || 
+      this.state.profileModalOpen !== nextState.profileModalOpen || 
+      this.state.user !== nextState.user || 
+      this.state.sidebarOpen !== nextState.sidebarOpen || 
+      this.state.sidebarComments !== nextState.sidebarComments ||  
+      this.state.sidebarContent !== nextState.sidebarContent)
   }
 
 
@@ -171,6 +188,8 @@ class App extends Component {
     // Sort the posts by number of likes
     let sortedPostArr = postArr.sort((a, b) => ((a.likes.length < b.likes.length) ? 1 : -1));
 
+    let sidebar_postid = (this.state.sidebarContent) ? this.state.sidebarContent.id : null;
+    
     return (
       <div className="App">
         <Sidebar
@@ -178,7 +197,7 @@ class App extends Component {
           onSetOpen={this.toggleSidebar}
           pullRight={true}
           touchHandleWidth={20}
-          sidebar={<SidebarContent addCommentHelper={this.addCommentToPost.bind(this,this.state.sidebarContent)} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
+          sidebar={<SidebarContent curUser={this.state.user.currentUser} deleteCommentHelper={this.deleteComment.bind(this,sidebar_postid)} addCommentHelper={this.addCommentToPost.bind(this,this.state.sidebarContent)} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
           sidebarClassName="Sidebar"
         />
         <Navbar className="App-header">
@@ -190,7 +209,7 @@ class App extends Component {
         </Navbar>
 
         <ListGroup id="main-posts">
-          {sortedPostArr.map((post) => { return (<Post key={post.id} clickHandler={() => { this.toggleSidebar(true, this.state.posts[post.id], this.state.comments[post.id].list) }} db={this.state.db} user={this.state.user} post={post} />) })}
+          {sortedPostArr.map((post) => { return (<Post key={post.id} clickHandler={() => { this.toggleSidebar(true, this.state.posts[post.id], this.state.comments[post.id]) }} db={this.state.db} user={this.state.user} post={post} />) })}
         </ListGroup>
         <Button onClick={this.togglePostModal} color="primary" className="addPostButton">+</Button>
 
