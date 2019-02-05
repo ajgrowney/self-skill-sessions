@@ -1,17 +1,49 @@
 import React, { Component } from 'react';
 import firebase from 'firebase'
-import { Button, ListGroup, Navbar, Nav, NavbarBrand, Modal, ModalHeader, ModalBody, Form, Label, Input, FormGroup, Col } from 'reactstrap';
+import { Button, ListGroup, Navbar, Nav, NavbarBrand } from 'reactstrap';
 import Sidebar from 'react-sidebar'
-import SidebarContent from '../components/SidebarContent'
+import { MdAdd } from 'react-icons/md'
+
 import fire from '../fire';
-import Post from '../components/Post'
+import {Post, PostModal, ProfileModal, SidebarContent} from '../components'
 import './App.css';
 
-
+// Param: user { Object }
 let handleSignOut = (user) => {
   user.signOut();
   window.location.href = "../"
 }
+
+
+
+// Param: post { Object } - object that contains the id of the post id
+// Param: e { FormSubmitEventHandler } - handles form submission with the comment data
+// Description: Appends the comment object to the list 
+let addCommentToPost = (post, e) => {
+  e.preventDefault();
+  let comment_text = e.target.commentAddText.value;
+  e.target.reset()
+  if(comment_text !== ""){
+    fire.firestore().collection('comments').doc(post.id).update({
+      list: firebase.firestore.FieldValue.arrayUnion(
+        {
+          user: fire.auth().currentUser.email,
+          text: comment_text,
+          created_at: Date.now()
+        }
+      )
+    })
+  }
+}
+
+let deleteComment = (postid, comment, e) => {
+  fire.firestore().collection('comments').doc(postid).update({
+    list: firebase.firestore.FieldValue.arrayRemove(comment)
+  })
+}
+
+
+
 
 class App extends Component {
   constructor(props) {
@@ -31,66 +63,9 @@ class App extends Component {
     this.toggleSidebar = this.toggleSidebar.bind(this)
     this.toggleProfileModal = this.toggleProfileModal.bind(this)
     this.togglePostModal = this.togglePostModal.bind(this)
-    this.addSkillSession = this.addSkillSession.bind(this)
-    this.addCommentToPost = this.addCommentToPost.bind(this)
-    this.deleteComment = this.deleteComment.bind(this)
-    this.updateProfile = this.updateProfile.bind(this)
   }
 
-  addSkillSession = (e) => {
-    e.preventDefault(); // Prevent Form Refresh
 
-    let event_title = e.target.title.value;
-    let event_description = e.target.description.value;
-    fire.firestore().collection('posts').add({
-      user: fire.auth().currentUser.email,
-      title: event_title,
-      description: event_description,
-      timestamp_created: Date.now(),
-      likes: []
-    }).then((doc) => {
-      // Add a blank set of comments for it
-      let postid = doc.id
-      fire.firestore().collection('comments').doc(postid).set({list: []})
-    })
-
-    // Toggle the modal to go back to main view
-    this.togglePostModal()
-  }
-  
-  addCommentToPost = (post, e) => {
-    e.preventDefault();
-    let comment_text = e.target.commentAddText.value;
-    e.target.reset()
-    if(comment_text !== ""){
-
-      fire.firestore().collection('comments').doc(post.id).update({
-        list: firebase.firestore.FieldValue.arrayUnion(
-          {
-            user: fire.auth().currentUser.email,
-            text: comment_text,
-            created_at: Date.now()
-          }
-        )
-      })
-    }
-  }
-  deleteComment = (postid, comment, e) => {
-    fire.firestore().collection('comments').doc(postid).update({
-      list: firebase.firestore.FieldValue.arrayRemove(comment)
-    })
-  }
-
-  updateProfile = (e) => {
-    e.preventDefault();
-    if (e.target.newpassword.value === e.target.passwordConfirm.value) {
-      fire.auth().currentUser.updatePassword(e.target.newpassword.value)
-      .then(() => this.toggleProfileModal())
-      .catch((e) => document.getElementById("alertPasswordMessage").innerText = e.message)
-    } else {
-      document.getElementById("alertPasswordMessage").innerText = "Passwords entered do not match"
-    }
-  }
   togglePostModal() {
     this.setState({
       postModalOpen: !this.state.postModalOpen
@@ -165,7 +140,7 @@ class App extends Component {
         }
       });
     });
-    }
+  }
 
  // Determine that it should only re-render if the posts have been updated
   shouldComponentUpdate = (nextProps, nextState) => {
@@ -197,7 +172,7 @@ class App extends Component {
           onSetOpen={this.toggleSidebar}
           pullRight={true}
           touchHandleWidth={20}
-          sidebar={<SidebarContent curUser={this.state.user.currentUser} deleteCommentHelper={this.deleteComment.bind(this,sidebar_postid)} addCommentHelper={this.addCommentToPost.bind(this,this.state.sidebarContent)} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
+          sidebar={<SidebarContent curUser={this.state.user.currentUser} deleteCommentHelper={deleteComment.bind(this,sidebar_postid)} addCommentHelper={addCommentToPost.bind(this,this.state.sidebarContent)} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
           sidebarClassName="Sidebar"
         />
         <Navbar className="App-header">
@@ -211,53 +186,11 @@ class App extends Component {
         <ListGroup id="main-posts">
           {sortedPostArr.map((post) => { return (<Post key={post.id} clickHandler={() => { this.toggleSidebar(true, this.state.posts[post.id], this.state.comments[post.id]) }} db={this.state.db} user={this.state.user} post={post} />) })}
         </ListGroup>
-        <Button onClick={this.togglePostModal} color="primary" className="addPostButton">+</Button>
+        <Button onClick={this.togglePostModal} color="primary" className="addPostButton"><MdAdd /></Button>
 
-
-        <Modal isOpen={this.state.postModalOpen} toggle={this.togglePostModal} className={this.props.className}>
-          <ModalHeader toggle={this.togglePostModal}>Add Skill Session</ModalHeader>
-          <ModalBody>
-
-            <Form onSubmit={this.addSkillSession}>
-              <FormGroup row>
-                <Label for="title" sm={2}>Title</Label>
-                <Col >
-                  <Input type="title" name="title" id="exampleTitle" placeholder="Event Title" />
-                </Col>
-              </FormGroup>
-              <FormGroup row>
-                <Label for="exampleDescription" sm={2}>Description</Label>
-                <Col>
-                  <Input type="description" name="description" id="exampleDescription" placeholder="Event Description" />
-                </Col>
-              </FormGroup>
-              <Button>Submit</Button>
-            </Form>
-          </ModalBody>
-        </Modal>
-
-        <Modal isOpen={this.state.profileModalOpen} toggle={this.toggleProfileModal} className={this.props.className}>
-          <ModalHeader toggle={this.toggleProfileModal}>Add Skill Session</ModalHeader>
-          <ModalBody>
-
-            <Form onSubmit={this.updateProfile}>
-              <FormGroup row>
-                <Label for="new-password" sm={2}>Update Password</Label>
-                <Col >
-                  <Input type="password" name="newpassword" id="new-password" placeholder="New Password" />
-                </Col>
-              </FormGroup>
-              <FormGroup row>
-                <Label for="passwordConfirm" sm={2}>Confirm Password</Label>
-                <Col>
-                  <Input type="password" name="passwordConfirm" id="examplepasswordConfirm" placeholder="Confirm password" />
-                </Col>
-              </FormGroup>
-              <Button>Submit</Button>
-              <span style={{"padding-left": "3%", color: "red"}} id="alertPasswordMessage"></span>
-            </Form>
-          </ModalBody>
-        </Modal>
+        <PostModal togglePostModal={this.togglePostModal} modalOpen={this.state.postModalOpen} />
+        <ProfileModal toggleProfileModal={this.toggleProfileModal} modalOpen={this.state.profileModalOpen} />
+        
 
 
       </div>

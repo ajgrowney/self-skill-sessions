@@ -23,6 +23,8 @@
   width: 70%;
 }
 
+/*-- Sign In Form*/
+
 .sign-in-form{
   width: 80%;
 }
@@ -35,6 +37,8 @@
   margin: auto;
   margin-top: 10%;
 }
+/*-- End of Sign In Form--*/
+
 .addPostButton{
   position: fixed;
   bottom: 0px;
