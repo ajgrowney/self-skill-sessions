@@ -11,7 +11,7 @@ let updateProfile = (closeProfileModal, e) => {
     } else {
       document.getElementById("alertPasswordMessage").innerText = "Passwords entered do not match"
     }
-  }
+}
 
 class ProfileModal extends Component{
     constructor(props){
