@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import firebase from 'firebase'
-import { Button, Dropdown, DropdownMenu, DropdownItem, DropdownToggle, ListGroup, Navbar, Nav, NavbarBrand } from 'reactstrap';
+import { Button, Dropdown, DropdownMenu, DropdownItem, DropdownToggle, Navbar, Nav, NavbarBrand } from 'reactstrap';
 import Sidebar from 'react-sidebar'
 import { MdAdd } from 'react-icons/md'
 
 import fire from '../fire';
-import {Post, PostModal, ProfileModal, SidebarContent} from '../components'
+import { ContentListGroup, PostModal, ProfileModal, SidebarContent} from '../components'
+import { getContent } from '../helpers/getContent'
 import './App.css';
 
 // Param: user { Object }
@@ -20,7 +21,6 @@ let handleSignOut = (user) => {
 // Param: e { FormSubmitEventHandler } - handles form submission with the comment data
 // Description: Appends the comment object to the list 
 let addCommentToPost = (post, commentdb, e) => {
-  console.log(commentdb)
   e.preventDefault();
   let comment_text = e.target.commentAddText.value;
   e.target.reset()
@@ -67,19 +67,20 @@ class App extends Component {
       sidebarOpen: false,
       profileModalOpen: false,
       dropdownOpen: false,
-      mainContent: "Ideas",
+      contentSelected: "Ideas",
       sidebarContent: "Initial",
       sidebarComments: [],
-      posts: {},
+      content: {},
       comments: {}
     }
-    
+
     // Bind Helper Functions to the component
     this.toggleDropdown = this.toggleDropdown.bind(this)
-    this.toggleMainContent = this.toggleMainContent.bind(this)
+    this.toggleContentSelected = this.toggleContentSelected.bind(this)
     this.toggleSidebar = this.toggleSidebar.bind(this)
     this.toggleProfileModal = this.toggleProfileModal.bind(this)
     this.togglePostModal = this.togglePostModal.bind(this)
+    this.updateDBListeners = this.updateDBListeners.bind(this)
   }
 
   toggleDropdown() {
@@ -104,47 +105,40 @@ class App extends Component {
       sidebarOpen: open
     })
   }
-  toggleMainContent(nextContent){
+  toggleContentSelected(nextContent){
     this.setState({
-      mainContent: nextContent
+      contentSelected: nextContent,
+      content: {},
+      comments: {}
+    }, () => {
+      this.updateDBListeners();
+
     })
   }
 
-  // Set up reference to firestore database
-  componentWillMount = () => {
-    this.setState({ db: fire.firestore(), user: fire.auth() });
-  }
-
-  // Component has mounted, so load data and adjust the state for rendering
-  componentDidMount = () => {
-
+  updateDBListeners(){
     // Grab DB Refernce for the Main Content's collection
-    let mainDBRef = this.state.db.collection(this.menuDBRefs[this.state.mainContent]);
+    let mainDBRef = this.state.db.collection(this.menuDBRefs[this.state.contentSelected]);
     mainDBRef.onSnapshot((snap) => {
       snap.docChanges().forEach((change) => {
         if (change.type === 'added' || change.type === 'modified') {
 
-          // Object destructuring to extract the change's title, description, user, likes, and id
-          let { title, user, likes, description } = change.doc.data()
-          let { id } = change.doc
-
-          // Create the post object and update the state with the new post
-          let post = { id, title, user, likes, description }
-          let curStatePosts = Object.assign({}, this.state.posts);
-          curStatePosts[id] = post;
-          this.setState({ posts: curStatePosts });
+          let newObj = getContent(change, this.state.contentSelected)
+          let curStateContent = Object.assign({}, this.state.content);
+          curStateContent[newObj.id] = newObj;
+          this.setState({ content: curStateContent });
 
         } else if (change.type === 'removed') {
 
           // Remove the post from the state posts and then reset the state
-          let prevStatePosts = Object.assign({}, this.state.posts);
-          delete prevStatePosts[change.doc.id]
-          this.setState({ posts: prevStatePosts })
+          let prevStateContent = Object.assign({}, this.state.content);
+          delete prevStateContent[change.doc.id]
+          this.setState({ content: prevStateContent })
         }
       });
     });
-    
-    let commentsDBRef = this.state.db.collection(this.commentDBRefs[this.state.mainContent]);
+
+    let commentsDBRef = this.state.db.collection(this.commentDBRefs[this.state.contentSelected]);
     commentsDBRef.onSnapshot( (snap) => {
       snap.docChanges().forEach( (change) => {
         if(change.type === 'added') {
@@ -168,32 +162,37 @@ class App extends Component {
     });
   }
 
+  // Set up reference to firestore database
+  componentWillMount = () => {
+    this.setState({ db: fire.firestore(), user: fire.auth() });
+  }
+
+  // Component has mounted, so load data and adjust the state for rendering
+  componentDidMount = () => {
+    this.updateDBListeners()
+  }
+
  // Determine that it should only re-render if the posts have been updated
   shouldComponentUpdate = (nextProps, nextState) => {
     return (
       this.state.comments !== nextState.comments || 
-      this.state.posts !== nextState.posts || 
+      this.state.content !== nextState.content || 
       this.state.postModalOpen !== nextState.postModalOpen || 
       this.state.profileModalOpen !== nextState.profileModalOpen || 
       this.state.user !== nextState.user || 
       this.state.sidebarOpen !== nextState.sidebarOpen || 
       this.state.sidebarComments !== nextState.sidebarComments ||  
       this.state.sidebarContent !== nextState.sidebarContent ||
-      this.state.mainContent !== nextState.mainContent ||
+      this.state.contentSelected !== nextState.contentSelected ||
       this.state.dropdownOpen !== nextState.dropdownOpen)
   }
 
 
   render() {
-    // Grab all the posts
-    let postArr = Object.values(this.state.posts);
-
-    // Sort the posts by number of likes
-    let sortedPostArr = postArr.sort((a, b) => ((a.likes.length < b.likes.length) ? 1 : -1));
 
     let sidebar_postid = (this.state.sidebarContent) ? this.state.sidebarContent.id : null;
-    let dropdownOptions = this.menuChoices.filter((item) => item !== this.state.mainContent)
-    
+    // Remove the current display from dropdown options
+    let dropdownOptions = this.menuChoices.filter((item) => item !== this.state.contentSelected)
     return (
       <div className="App">
         <Sidebar
@@ -201,7 +200,7 @@ class App extends Component {
           onSetOpen={this.toggleSidebar}
           pullRight={true}
           touchHandleWidth={20}
-          sidebar={<SidebarContent curUser={this.state.user.currentUser} deleteCommentHelper={deleteComment.bind(this,sidebar_postid, this.commentDBRefs[this.state.mainContent])} addCommentHelper={addCommentToPost.bind(this,this.state.sidebarContent,this.commentDBRefs[this.state.mainContent])} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
+          sidebar={<SidebarContent curUser={this.state.user.currentUser} deleteCommentHelper={deleteComment.bind(this,sidebar_postid, this.commentDBRefs[this.state.contentSelected])} addCommentHelper={addCommentToPost.bind(this,this.state.sidebarContent,this.commentDBRefs[this.state.contentSelected])} comments={this.state.sidebarComments} content={this.state.sidebarContent} closeSidebar={() => this.toggleSidebar(false, null, null)} />}
           sidebarClassName="Sidebar"
         />
         <Navbar className="App-header">
@@ -209,10 +208,10 @@ class App extends Component {
               <Dropdown isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown}>
                 Skill Sessions >>  
                 <DropdownToggle caret>
-                  {this.state.mainContent}
+                  {this.state.contentSelected}
                 </DropdownToggle>
                 <DropdownMenu>
-                  {dropdownOptions.map((op) => (<DropdownItem onClick={() => this.toggleMainContent(op)}>{op}</DropdownItem>))}
+                  {dropdownOptions.map((op) => (<DropdownItem key={op} onClick={() => this.toggleContentSelected(op)}>{op}</DropdownItem>))}
                 </DropdownMenu>
               </Dropdown>
           </NavbarBrand>
@@ -222,14 +221,7 @@ class App extends Component {
           </Nav>
         </Navbar>
 
-        <ListGroup id="main-posts">
-          {
-            (this.state.mainContent === 'Ideas') ? 
-              sortedPostArr.map((post) => { return (<Post key={post.id} clickHandler={() => { this.toggleSidebar(true, this.state.posts[post.id], this.state.comments[post.id]) }} db={this.state.db} user={this.state.user} post={post} />) })
-            :
-              []
-          }
-        </ListGroup>
+        <ContentListGroup sidebarToggle={this.toggleSidebar} user={this.state.user} db={this.state.db} comments={this.state.comments} content={this.state.content} type={this.state.contentSelected} />
         <Button onClick={this.togglePostModal} color="primary" className="addPostButton"><MdAdd /></Button>
 
         <PostModal togglePostModal={this.togglePostModal} modalOpen={this.state.postModalOpen} />
