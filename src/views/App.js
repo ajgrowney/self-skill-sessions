@@ -5,7 +5,7 @@ import Sidebar from 'react-sidebar'
 import { MdAdd } from 'react-icons/md'
 
 import fire from '../fire';
-import { ContentListGroup, PostModal, ProfileModal, SidebarContent} from '../components'
+import { ContentListGroup, AddContentModal, ProfileModal, SidebarContent} from '../components'
 import { getContent } from '../helpers/getContent'
 import './App.css';
 
@@ -50,20 +50,10 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    this.menuChoices = ["Ideas", "Events"]
-    this.menuDBRefs = {
-      "Ideas": "posts",
-      "Events": "events"
-    }
-    this.commentDBRefs = {
-      "Ideas": "comments_posts",
-      "Events": "comments_events"
-    }
-
     this.state = {
       db: null,
       user: null,
-      postModalOpen: false,
+      addContentModalOpen: false,
       sidebarOpen: false,
       profileModalOpen: false,
       dropdownOpen: false,
@@ -79,8 +69,20 @@ class App extends Component {
     this.toggleContentSelected = this.toggleContentSelected.bind(this)
     this.toggleSidebar = this.toggleSidebar.bind(this)
     this.toggleProfileModal = this.toggleProfileModal.bind(this)
-    this.togglePostModal = this.togglePostModal.bind(this)
+    this.toggleAddContentModal = this.toggleAddContentModal.bind(this)
     this.updateDBListeners = this.updateDBListeners.bind(this)
+
+    // View Selection Maps
+    this.menuChoices = ["Ideas", "Events"]
+    this.menuDBRefs = {
+      "Ideas": "posts",
+      "Events": "events"
+    }
+    this.commentDBRefs = {
+      "Ideas": "comments_posts",
+      "Events": "comments_events"
+    }
+
   }
 
   toggleDropdown() {
@@ -88,9 +90,9 @@ class App extends Component {
       dropdownOpen: !this.state.dropdownOpen
     })
   }
-  togglePostModal() {
+  toggleAddContentModal() {
     this.setState({
-      postModalOpen: !this.state.postModalOpen
+      addContentModalOpen: !this.state.addContentModalOpen
     });
   }
   toggleProfileModal() {
@@ -177,7 +179,7 @@ class App extends Component {
     return (
       this.state.comments !== nextState.comments || 
       this.state.content !== nextState.content || 
-      this.state.postModalOpen !== nextState.postModalOpen || 
+      this.state.addContentModalOpen !== nextState.addContentModalOpen || 
       this.state.profileModalOpen !== nextState.profileModalOpen || 
       this.state.user !== nextState.user || 
       this.state.sidebarOpen !== nextState.sidebarOpen || 
@@ -189,7 +191,7 @@ class App extends Component {
 
 
   render() {
-
+    console.log(this.state.comments)
     let sidebar_postid = (this.state.sidebarContent) ? this.state.sidebarContent.id : null;
     // Remove the current display from dropdown options
     let dropdownOptions = this.menuChoices.filter((item) => item !== this.state.contentSelected)
@@ -222,9 +224,9 @@ class App extends Component {
         </Navbar>
 
         <ContentListGroup sidebarToggle={this.toggleSidebar} user={this.state.user} db={this.state.db} comments={this.state.comments} content={this.state.content} type={this.state.contentSelected} />
-        <Button onClick={this.togglePostModal} color="primary" className="addPostButton"><MdAdd /></Button>
+        <Button onClick={this.toggleAddContentModal} color="primary" className="addContentButton"><MdAdd /></Button>
 
-        <PostModal togglePostModal={this.togglePostModal} modalOpen={this.state.postModalOpen} />
+        <AddContentModal type={this.state.contentSelected} toggleAddContentModal={this.toggleAddContentModal} modalOpen={this.state.addContentModalOpen} />
         <ProfileModal toggleProfileModal={this.toggleProfileModal} modalOpen={this.state.profileModalOpen} />
         
 

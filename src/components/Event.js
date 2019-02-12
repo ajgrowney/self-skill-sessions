@@ -6,7 +6,7 @@ class Event extends Component {
         super(props);
         this.eventTitle = props.event.title
         this.eventDescription = props.event.description
-        this.eventDate = new Date(props.event.datetime_scheduled)
+        this.eventDate = new Date(props.event.datetime_scheduled).toString()
     }
 
     render(){
@@ -16,7 +16,7 @@ class Event extends Component {
                 <ListGroupItemText>
                     {this.eventDescription}
                     <br />
-                    {this.eventDate.getMonth()+1}/{this.eventDate.getDate()}
+                    {this.eventDate}
                 </ListGroupItemText>
             </ListGroupItem>
         )
