@@ -3,10 +3,9 @@ import fire from '../fire'
 import { MdEventBusy, MdEventAvailable, MdEventNote } from 'react-icons/md'
 import { Dropdown, DropdownMenu, DropdownItem, DropdownToggle, ListGroupItem, ListGroupItemHeading, ListGroupItemText } from 'reactstrap'
 import './Event.css'
-import Events from './Event.css'
+
 class Event extends Component {
     constructor(props){
-        console.log(props.event)
         super(props);
         this.eventTitle = props.event.title
         this.eventDescription = props.event.description
