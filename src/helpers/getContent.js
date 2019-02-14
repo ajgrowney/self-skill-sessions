@@ -9,9 +9,9 @@ let getContent = (change, type) => {
         let post = { id, title, user, likes, description }
         return post;
     }else if(type === "Events"){
-        let { title, description, datetime_scheduled, host, location, post_id } = change.doc.data()
+        let { title, description, datetime_scheduled, host, location, post_id, attendees } = change.doc.data()
         let { id } = change.doc
-        let event = { id, title, description, datetime_scheduled, host, location, post_id };
+        let event = { id, title, description, datetime_scheduled, host, location, post_id, attendees };
         return event;
 
     }

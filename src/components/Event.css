@@ -1,0 +1,28 @@
+.eventCardContainer{
+    display: grid;
+    grid-template-columns: 25% auto 25%;
+    justify-content: center;
+    align-items: center;
+}
+
+.eventDateTimeContainer{
+    grid-column: 1;
+    text-align: right;
+    padding-right: 3%;
+    border-right: 2px solid gray;
+    margin-right: 3%;
+    height: 100%;
+}
+
+.eventInfoContainer{
+    grid-column: 2;
+}
+
+.eventAttendanceContainer{
+    grid-column: 3;
+}
+
+.goingIcon{
+    background-color: green;
+    color: white;
+}
