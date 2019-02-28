@@ -4,6 +4,7 @@ import { MdEventBusy, MdEventAvailable, MdEventNote } from 'react-icons/md'
 import { Dropdown, DropdownMenu, DropdownItem, DropdownToggle, ListGroupItem, ListGroupItemHeading, ListGroupItemText } from 'reactstrap'
 import './Event.css'
 
+
 class Event extends Component {
     constructor(props){
         super(props);
@@ -48,7 +49,30 @@ class Event extends Component {
         dropdownOpen: !this.state.dropdownOpen
         })
     }
-    toggleAttendanceStatus(option){
+    toggleAttendanceStatus(prev, option){
+        if(option === "Going"){
+            if(this.state.attendanceStatus === "Not Going"){
+                // Previously not going, update status to going in database
+
+            }else if(this.state.attendanceStatus === "Undecided"){
+                // Update the eventAttending to include user
+
+            }
+
+        }else if(option === "Not Going"){
+            if(this.state.attendanceStatus === "Going"){
+                // Remove from going, add into not going
+
+            }else if(this.state.attendanceStatus === "Undecided"){
+                // Update eventNotAttending to include user
+            }
+
+        }else{
+            // Remove from both
+
+        }
+
+        // Update the state
         this.setState({
             dropdownOpen: !this.state.dropdownOpen,
             attendanceStatus: option
@@ -73,9 +97,9 @@ class Event extends Component {
                     <ListGroupItemText>
                         {this.eventDescription}
                         <br />
-                        {this.eventAttending.length} going
-                        {'\t'}
-                        {this.eventNotAttending.length} not going
+                        {this.eventAttending.length} Going
+                        {'\t '}
+                        {this.eventNotAttending.length} Not Going
                     </ListGroupItemText>
                 </div>
 
@@ -85,7 +109,7 @@ class Event extends Component {
                             {this.attendanceIcons[this.state.attendanceStatus]}
                         </DropdownToggle>
                         <DropdownMenu>
-                            {dropdownOptions.map((op) => (<DropdownItem key={op} onClick={() => this.toggleAttendanceStatus(op)} > {this.attendanceIcons[op]} </DropdownItem>))}
+                            {dropdownOptions.map((op) => (<DropdownItem key={op} onClick={() => this.toggleAttendanceStatus(this.state.attendanceStatus, op)} > {this.attendanceIcons[op]} </DropdownItem>))}
                         </DropdownMenu>
                     </Dropdown>
                 </div>
