@@ -13,6 +13,7 @@ class Event extends Component {
         this.eventDate = new Date(props.event.datetime_scheduled)
         this.eventAttending = props.event.attendees.going;
         this.eventNotAttending = props.event.attendees.not_going;
+        this.eventId = props.event.id;
 
         this.attendanceStatus = "";
         let curUserEmail = fire.auth().currentUser.email;
@@ -50,28 +51,28 @@ class Event extends Component {
         })
     }
     toggleAttendanceStatus(prev, option){
-        if(option === "Going"){
-            if(this.state.attendanceStatus === "Not Going"){
-                // Previously not going, update status to going in database
-
-            }else if(this.state.attendanceStatus === "Undecided"){
-                // Update the eventAttending to include user
-
-            }
-
-        }else if(option === "Not Going"){
-            if(this.state.attendanceStatus === "Going"){
-                // Remove from going, add into not going
-
-            }else if(this.state.attendanceStatus === "Undecided"){
-                // Update eventNotAttending to include user
-            }
-
-        }else{
-            // Remove from both
-
+        const userEmail = fire.auth().currentUser.email;
+        if(prev === "Going"){
+          this.eventAttending = this.eventAttending.filter((user) => user !== userEmail);
+        }else if(prev === "Not Going"){
+          this.eventNotAttending = this.eventNotAttending.filter((user) => user !== userEmail);
         }
 
+        if(option === "Going"){
+          this.eventAttending.push(userEmail);
+        }else if(option === "Not Going"){
+          this.eventNotAttending.push(userEmail);
+        }
+
+        console.log(prev,option, userEmail)
+        console.log(this.eventAttending,this.eventNotAttending)
+
+        fire.firestore().collection('events').doc(this.eventId).update({
+          attendees: {
+            going: this.eventAttending,
+            not_going: this.eventNotAttending
+          }
+        });
         // Update the state
         this.setState({
             dropdownOpen: !this.state.dropdownOpen,
@@ -81,7 +82,7 @@ class Event extends Component {
 
     render(){
 
-
+        console.log(this.state)
         let dropdownOptions = this.attendanceOptions.filter((item) => item !== this.state.attendanceStatus)
         return(
             <ListGroupItem className="eventCardContainer">
@@ -113,7 +114,7 @@ class Event extends Component {
                         </DropdownMenu>
                     </Dropdown>
                 </div>
-                
+
             </ListGroupItem>
         )
     }

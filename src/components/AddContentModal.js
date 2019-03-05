@@ -2,12 +2,12 @@ import React, { Component } from 'react'
 import { Modal, ModalHeader, ModalBody, Form, FormGroup, Input, Label, Col, Button } from 'reactstrap'
 import fire from '../fire';
 
-// Param: closeModal { function } - function that closes the post modal 
+// Param: closeModal { function } - function that closes the post modal
 // Param: e { FormSubmitEventHandler } - handles the form submission
 // Description: Handles the addition of a new skill session idea to the posts document in db
 let addSkillSession = (closeModal,e) => {
     e.preventDefault(); // Prevent Form Refresh
-  
+
     let event_title = e.target.title.value;
     let event_description = e.target.description.value;
     fire.firestore().collection('posts').add({
@@ -21,7 +21,7 @@ let addSkillSession = (closeModal,e) => {
       let postid = doc.id
       fire.firestore().collection('comments_posts').doc(postid).set({list: []})
     })
-  
+
     // Toggle the modal to go back to main view
     closeModal()
 }
@@ -53,7 +53,7 @@ class AddContentModal extends Component{
         this.toggleAddContentModal = this.props.toggleAddContentModal;
         this.state = {
             modalOpen: this.props.modalOpen
-    
+
         }
     }
     componentDidUpdate = (prevProps, prevState) => {
@@ -129,7 +129,7 @@ class AddContentModal extends Component{
                             <FormGroup row>
                                 <Label  sm={2}>Event Time</Label>
                                 <Col>
-                                <Input type="datetime-local" name="datetime" placeholder="Event Location" />
+                                <Input type="datetime-local" name="datetime" placeholder="Event Date and Time" />
                                 </Col>
                             </FormGroup>
                             <Button>Submit</Button>
